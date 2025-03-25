@@ -1,0 +1,19 @@
+﻿:root {
+    --bg: #EF804F;
+    --primary: #FF664D;
+    --primary-light: #F49C6A;
+    --primary-medium: #F18952;
+    --primary-dark: #EC6225;
+    --secondary-light: #669FCE;
+    --secondary-medium: #337FBE;
+    --secondary-dark: #005FAD;
+    --c-company-profile: var(--primary-light);
+    --c-permissions: var(--secondary-dark);
+    --c-manage-users: var(--secondary-light);
+    --c-manage-sectors: var(--primary-dark);
+    --c-examination: var(--secondary-medium);
+    --c-authorization: var(--primary-medium);
+    --c-profile: var(--secondary-dark);
+    --c-button-primary: var(--primary-light);
+    --c-button-secondary: var(--secondary-light);
+}

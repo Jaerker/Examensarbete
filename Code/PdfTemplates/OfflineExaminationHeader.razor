@@ -1,0 +1,96 @@
+﻿@using AlfaCert.Models.ExaminationModels
+
+<head>
+    <style>
+
+        .header {
+        display: grid;
+        grid-template-columns: 1fr 2fr 2fr 1fr;
+        gap: 1vw;
+        padding-inline:5mm;
+        height:auto;
+        }
+
+        .watermark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: auto;
+        width: 100%;
+        }
+        .header__logo {
+        margin-inline: auto;
+        width: 100%;
+        }
+
+        .header__examination-info,
+        .header__invigilator-info {
+        border: dashed 1px black;
+        }
+
+        .examination-info_item > p {
+        font-size: 12rem;
+        margin: 5rem;
+        padding: 0;
+        }
+
+        .examination-info_item > p:nth-child(2) {
+        font-weight: 700;
+        }
+
+        .header__examination-qr {
+        width:100%;
+        }
+
+        /* .temp-id{
+        font-weight:700;
+        font-size:4mm;
+        text-align:center;
+        } */
+    </style>
+
+</head>
+<header class="header">
+    <img src=@LogoSvg class="header__logo" alt="Logo" />
+    <section class="header__examination-info">
+        <section class="examination-info_item">
+            <p>Kvalifikationsutgivare: </p>
+            <p>@Examination.ExaminationTemplate.Sector.Name</p>
+        </section>
+        <section class="examination-info_item">
+            <p>Kravspecifikation: </p>
+            <p>@Examination.ExaminationTemplate.ExaminationBlock.Title</p>
+        </section>
+        <section class="examination-info_item">
+            <p>Kompetens i Certifikat:</p>
+            <p>@Examination.ExaminationTemplate.ExaminationBlock.Title - @Examination.ExaminationTemplate.Title</p>
+        </section>
+
+    </section>
+    <section class="header__invigilator-info">
+        <section class="examination-info_item">
+            <p>Instruktör: </p>
+            <p>@Examination.InvigilatorName</p>
+        </section>
+        <section class="examination-info_item">
+            <p>Utbildningsarrangör:</p>
+            <p>@Examination.InvigilatorCompanyName</p>
+        </section>
+        <section class="examination-info_item">
+            <p>Examinationsansvarig:</p>
+            <p>Alfasafe AB</p>
+        </section>
+    </section>
+    @* <p class="temp-id">@QrCode.ToUpper()</p> *@
+    <img src=@QrCode class="header__examination-qr" alt="QR"/> 
+
+</header>
+
+@code {
+    [Parameter] public ExaminationModel? Examination { get; set; }
+    [Parameter] public string? LogoSvg { get; set; }
+    [Parameter] public string? QrCode { get; set; } = "";
+
+}

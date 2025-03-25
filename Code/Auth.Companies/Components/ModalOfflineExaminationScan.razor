@@ -1,0 +1,76 @@
+﻿@using ReactorBlazorQRCodeScanner
+@attribute [StreamRendering]
+
+@inject IDataHandlingService _dataService
+@inject NavigationManager _navManager
+@inject IJSRuntime _js
+<head>
+    <link rel="stylesheet" type='text/css' href="./styles/modal-styles.css" />
+</head>
+<Popup @ref="popupRef" />
+
+<Loading IsLoading=_isLoading />
+@if (!_isLoading)
+{
+    <Card   
+    hasToggleBackdrop=true
+    toggleBackdrop=_isVisible
+    coverWidth=true
+    useLeftMargin=false>
+
+        <Card useWhiteBackground=true
+                extraPaddingTop=false
+                lessPaddingAround=true>
+            <h3>Scanna QR koden på examinationen</h3>
+                
+            <QRCodeScanner 
+                LoadingMessage="Försöker få tillgång till kameran för att skanna koden..." />
+        </Card>
+
+    </Card>
+}
+
+@code 
+{
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback OnSubmit { get; set; }
+    [Parameter] public EventCallback OnRemove { get; set; }
+
+    private bool isOnCancelSet => OnCancel.HasDelegate;
+    private bool isOnSubmitSet => OnSubmit.HasDelegate;
+
+    private bool _isLoading { get; set; } = false;
+    private bool _isVisible { get; set; } = false;
+    private Popup popupRef;
+
+    public async Task Show() 
+    {
+        _isVisible = true;
+
+        _onQrCodeScanAction = (code) => OnQrCodeScan(code);
+
+        _qrCodeScannerJsInterop = new QRCodeScannerJsInterop(_js);
+        await _qrCodeScannerJsInterop.Init(_onQrCodeScanAction);
+        StateHasChanged();
+    }
+    private void Close()
+    {
+        _isVisible = false;
+        StateHasChanged();
+    }
+    private QRCodeScannerJsInterop? _qrCodeScannerJsInterop;
+    private Action<string>? _onQrCodeScanAction;
+
+    private void OnQrCodeScan(string code)
+    {
+        _navManager.NavigateTo(_navManager.Uri + $"/{code}");
+    }
+
+    private async void HandleCancel()
+    {
+        if (isOnCancelSet) await OnCancel.InvokeAsync();
+        Close();
+    }
+
+
+}

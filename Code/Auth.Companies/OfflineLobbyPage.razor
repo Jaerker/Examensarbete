@@ -1,0 +1,121 @@
+﻿@page "/auth/sectors/{tag}/companies/{companyId}/offline"
+@inject IDataHandlingService _dataService
+@inject UserService _userService
+@inject NavigationManager _navManager
+@inject IJSRuntime _js;
+@attribute [StreamRendering]
+@using AlfaCert.Components.Pages.Auth_Companies.Components
+@using Microsoft.Playwright
+
+<Loading IsLoading=_isLoading Message=@_loadingMessage />
+@if (!_isLoading)
+{
+    <h3>Offline funktionalitet</h3>
+    @if(Error != null)
+    {
+        <p style="text-align:center;">Det blev fel när ni skannade QR koden, testa igen!</p>
+    }
+    else
+    {
+        <p style="text-align:center;">Än så länge kan man bara skriva ut en examination i taget, och tyvärr så kommer arbetsbladen ut som 3 separata PDF filer. <br /><br />Detta kommer ändras i en snar framtid, då man kan bestämma hur många man vill ha och att varje examination kommer i en varsin PDF fil.</p>
+
+    }
+}
+@if (_unusedExaminations != null)
+{
+    <h4>Det finns @_unusedExaminations.Count() oanvända examinationer utskrivna.</h4>
+}
+
+<Card>
+    @if (!_isLoading)
+    {
+        <h4 style="text-align:center;">Välj Certifikat</h4>
+
+        @if (_examinationBlocks != null)
+        {
+            foreach (var block in _examinationBlocks)
+            {
+                <Button color="secondary" OnClick=@(() => {_chosenExaminationBlock = _chosenExaminationBlock == block.Id ? Guid.Empty : block.Id;StateHasChanged();})>@block.Title (@block.ExaminationTemplates.Count())</Button>
+                @if (_chosenExaminationBlock == block.Id)
+                {
+                    foreach(var template in block.ExaminationTemplates)
+                    {
+
+                        <Button color="primary" OnClick=@(() => CreateOfflineTemplate(template.Id))>@template.Title</Button>
+
+                    }
+                }
+            }
+        }
+    }
+</Card>
+
+<Button color="primary" OnClick=@(() => modalOfflineExaminationScanRef.Show())>Rätta prov</Button>
+
+<ModalOfflineExaminationScan @ref=modalOfflineExaminationScanRef />
+
+@code {
+    [Parameter] public string CompanyId { get; set; }
+    [Parameter] public string Tag { get; set; }
+    [SupplyParameterFromQuery] public string Error { get; set; }
+    private List<ExaminationBlockDto> _examinationBlocks { get; set; }
+    private List<ExaminationDto> _unusedExaminations { get; set; }
+    private Guid _chosenExaminationBlock { get; set; } = Guid.Empty;
+    private bool _isLoading { get; set; } = true; 
+    private string _loadingMessage { get; set; } = "Vänta...";
+    private UserDto _user { get; set; }
+    private ModalOfflineExaminationScan modalOfflineExaminationScanRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Guid.TryParse(CompanyId, out var _companyId)) _navManager.NavigateTo($"/auth/sectors/{Tag}");
+        var user = await _userService.GetUserAsync();
+        if (user != null)
+        {
+            var invig = user.Invigilators.Where(i => i.CompanyId == _companyId).FirstOrDefault();
+            if (invig == null) _navManager.NavigateTo($"/auth/sectors/{Tag}");
+            else
+            {
+                _examinationBlocks = await _dataService.GetExaminationBlocksConnectedToInvigilator(invig.Id);
+                _unusedExaminations = await _dataService.GetOfflineExaminations();
+                if (_unusedExaminations != null) _unusedExaminations = _unusedExaminations.Where(e => e.Invigilator.CompanyId == _companyId).ToList();
+            }
+        }
+        else 
+        {
+            _userService.ResetUserInformation();
+            _navManager.NavigateTo("/");
+        }
+        _isLoading = false;
+    }
+
+    public async Task CreateOfflineTemplate(Guid id)
+    {
+        _loadingMessage = "Lämna inte sidan förens laddningen är klar";
+        _isLoading = true;
+        var html = await _dataService.CreateOfflineExamination(Guid.Parse("7B6F9512-28AD-401F-A913-C1B6D1B0DDD8"), 1, Guid.Parse(CompanyId));
+
+        // for(int i=0;i < html.Count; i+=2)
+        // {
+        //     var page = Combine(html[i], html[i + 1]);
+        //     await _js.InvokeAsync<byte[]>("saveAsFile", $"offline-examinations-{DateTime.Now}.pdf", Convert.ToBase64String(page));
+
+        // }
+        var examBlock = _examinationBlocks.Where(eb => eb.Id == _chosenExaminationBlock).FirstOrDefault();
+        var examinationTemplate = examBlock.ExaminationTemplates.Where(et => et.Id == id).FirstOrDefault();
+        string offlineFileName = "offline-examination";
+        if (examinationTemplate != null) offlineFileName = examBlock.Title.Replace(" ","-").ToLower() + "-" + examinationTemplate.Title.Replace(" ", "-").ToLower();
+        foreach(var page in html)
+        {
+            await _js.InvokeAsync<byte[]>("saveAsFile", $"{offlineFileName}-{DateTime.Now}.pdf", Convert.ToBase64String(page));
+        }
+
+        _isLoading = false;
+        _loadingMessage = "Vänta...";
+    }
+    private static byte[] Combine(byte[] first, byte[] second)
+    {
+        return first.Concat(second).ToArray();
+    }
+
+}

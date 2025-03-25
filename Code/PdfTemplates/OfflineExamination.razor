@@ -1,0 +1,248 @@
+﻿@using AlfaCert.Models.ExaminationModels
+@using AlfaCert.Shared.Library
+
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    @if (Examination.ExaminationTemplate.ExaminationBlock.Sector.StyleUrl != null)
+    {
+        <link rel='stylesheet' type='text/css' href=@Examination.ExaminationTemplate.ExaminationBlock.Sector.StyleUrl />
+    }
+    <style>
+        *{
+            font-family: "Inter", sans-serif;
+        }
+        .main {
+            display: grid;
+            grid-template-areas: "a a a a b b"
+                                    "a a a a b b"
+                                    "a a a a b b"
+                                    "c c c c c c"
+                                    "c c c c c c"
+                                    "d d d d d d";
+            grid-template-rows: repeat(6, 1fr);
+            grid-template-columns: repeat(6, 1fr);
+            gap: .5rem;
+            height:90vh;
+        }
+
+
+
+
+        .examination-info__categories {
+            grid-area: a;
+        }
+
+        .examination-info__specifics {
+            grid-area: b;
+        }
+
+        .examination-info__bullets {
+            grid-area: c;
+        }
+
+        /* Kategori delen */
+
+        .category-table {
+            width: 100%;
+            position: relative;
+        }
+
+        .category-table__header {
+            font-size: 1rem;
+        }
+
+        .category-table__body > tr:last-child td {
+            padding-bottom: 1rem;
+        }
+
+        .category-block-announcer > th {
+            text-align: left;
+            padding: .25rem 0 .5rem 0;
+        }
+
+        .category-table__row {
+            text-align: center;
+        }
+
+            .category-table__row > td:first-child {
+                text-align: left;
+                padding-left: 1rem;
+            }
+
+        .category-summary > tr > th {
+            border-top: dashed 1px black;
+            padding-top: 1rem;
+        }
+
+            .category-summary > tr > th:first-child {
+                text-align: left;
+            }
+
+        /* Aside */
+        .specifics-table {
+            width: 100%;
+        }
+
+            .specifics-table tr td {
+                padding-bottom: .55rem;
+            }
+
+                .specifics-table tr td:last-child {
+                    text-align: right;
+                }
+
+            .specifics-table tr:last-child td {
+                padding-bottom: 1.25rem;
+            }
+
+        .description {
+            display: grid;
+            gap: .5rem;
+        }
+
+            .description > h2 {
+                font-size: 1.25rem;
+            }
+
+            .description > p {
+                font-size: .8rem;
+                padding-inline: .5rem;
+            }
+
+
+
+        .examination-info__bullets {
+            font-size: .75rem;
+        }
+
+
+            .bullets-list li {
+                padding-block: 1mm;
+            }
+
+        .examination-info__categories,
+        .examination-info__specifics,
+        .examination-info__bullets,
+        .examination-form {
+            border: dashed 1px black;
+            padding: 2mm;
+        }
+
+        .examination-info_item > p:nth-child(2) {
+            font-weight: 700;
+            padding: 1mm 0 2mm 0;
+        }
+
+        
+
+        .examination-form {
+            grid-area: d;
+            display: grid;
+        }
+
+            .examination-form > p {
+                color: rgb(99, 98, 98);
+                font-size:.8rem;            }
+
+            .examination-form > span {
+                width: 95%;
+                margin: auto;
+                height:1.5rem;
+                background: rgba(168, 168, 168, 0.2);
+                border-bottom: solid grey .5mm;
+            }
+    </style>
+</head>
+
+
+<main class="main">
+    <section class="examination-info__categories">
+        <table class="category-table">
+            <thead class="category-table__header">
+                <tr>
+                    <th>Kategori</th>
+                    <th>Antal frågor</th>
+                    <th>Antal för <br />godkänt</th>
+                </tr>
+            </thead>
+            <tbody class="category-table__body">
+                @{
+                    int sumAmountOfQuestions = 0;
+                    int sumAmountOfAnswers = 0;
+                }
+                @foreach(var questionCategory in Examination.ExaminationTemplate.QuestionCategories.Where(qc => qc.BaseState == EnumState.Active) )
+                {
+                    sumAmountOfQuestions += questionCategory.AmountOfQuestions;
+                    sumAmountOfAnswers += questionCategory.AmountOfAnswersToPass;
+                    <tr class="category-table__row">
+                        <td>@questionCategory.QuestionCategoryTemplate.Title</td>
+                        <td>@questionCategory.AmountOfQuestions</td>
+                        <td>@questionCategory.AmountOfAnswersToPass (@((double)questionCategory.AmountOfAnswersToPass / (double)questionCategory.AmountOfQuestions*100)%)</td>
+                    </tr>
+                }
+                    
+            </tbody>
+            <tfoot class="category-summary">
+                <tr>
+                    <th>Summering</th>
+                    <th>@sumAmountOfQuestions</th>
+                    <th>@sumAmountOfAnswers (@((double)sumAmountOfAnswers / (double)sumAmountOfQuestions * 100)%)</th>
+                </tr>
+            </tfoot>
+
+        </table>
+
+
+    </section>
+    <aside class="examination-info__specifics">
+        <table class="specifics-table">
+            <tr>
+                <td>Skapades</td>
+                <td>@Examination.CreatedAt</td>
+            </tr>
+            <tr>
+                <td>Giltig till</td>
+                <td>@Examination.ExpiresAt</td>
+            </tr>
+            <tr>
+                <td>Tidsgräns</td>
+                <td>@Examination.ExaminationTemplate.TimeLimitInMinutes m</td>
+            </tr>
+            <tr>
+                <td>Giltighetstid för<br /> kompetens</td>
+                <td>@Examination.ExaminationTemplate.CertificatePeriodOfValidityInMonths månader</td>
+            </tr>
+        </table>
+        <section class="description">
+            <h2>Beskrivning</h2>
+            <p>@Examination.ExaminationTemplate.Description </p>
+        </section>
+    </aside>
+    <section class="examination-info__bullets">
+        <ul class="bullets-list">
+            <li>Examinationen är giltig i 3 månader från det att den skapats.</li>
+            <li><strong>INSTRUKTÖREN</strong> är ansvarig att se till att DELTAGAREN inte överskrider tidsbegränsningen.</li>
+            <li>Om allvarligare uppdateringar skett så kan man behöva göra om testet, då det gamla inte är giltigt längre. <strong>Det är INSTRUKTÖRENS ansvar att hålla koll på  vilken version som är nyast</strong> (mer information finns i applikationen)</li>
+            <li>Informationen på frågebladet är konfidentiell! Ingen del av innehåller får kopieras, spridas, delas eller tas med efter examinationen. Frågeblad ska omhändertas efter förbrukning i dokumentförstörare eller motsvarande.</li>
+            <li>Gällande svarsenkäten - Svarsenkäten är unik för tillhörande frågeblad. Svarsenkätena är ej utbytbara och går inte att använda med andra frågeblad. Se till att ha rätt svarsenkät till rätt frågeblad med hjälp av det ID som står i nedre höger hörn.</li>
+            <li>
+                Genom att utföra denna examination så godkänner du vår hantering av dina personuppgifter enligt vårt
+                <strong>Integritetsmeddelande</strong> som finns att läsa på <strong>alfasafe.se/privacy-policy</strong>.
+            </li>
+        </ul>
+    </section>
+    <section class="examination-form">
+        <p>Namn*</p>
+        <span></span>
+        <p>Personnr / Nationellt ID*</p>
+        <span></span>
+        <p>Företag</p>
+        <span></span>
+    </section>
+</main>
+
+@code {
+    [Parameter] public ExaminationModel? Examination { get; set; }
+}

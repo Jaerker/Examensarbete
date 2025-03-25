@@ -1,0 +1,23 @@
+﻿.question-row {
+    margin: .5rem;
+}
+.alternatives-row {
+    display: flex;
+    justify-content: space-between;
+    align-items:center;
+}
+.alternative-checkbox {
+    border:none;
+    border: solid 2px black;
+    border-radius:100%;
+    width:3rem;
+    height:3rem;
+    margin: .5rem;
+    transition: background ease-in-out.2s;
+}
+.alternative-checkbox--checked {
+    background:var(--primary);
+}
+.alternative-checkbox--unchecked {
+    background: white;
+}

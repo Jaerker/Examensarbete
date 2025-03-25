@@ -1,0 +1,85 @@
+﻿@page "/auth/sectors/{tag}/companies/{companyId}/offline/{examinationId}"
+@inject NavigationManager _navManager
+@inject IDataHandlingService _dataService
+@inject UserService _userService
+<head>
+    <link rel="stylesheet" type='text/css' href="./styles/modal-styles.css" />
+</head>
+<Loading IsLoading=_isLoading />
+<Popup @ref=popupRef />
+
+@if(!_isLoading)
+{
+    @if (_examination != null)
+    {
+        <h3>@_examination.ExaminationTemplate.Title</h3>
+        <EditForm class='modal-form' Model=_applicant FormName=applicant OnValidSubmit=SubmitExamination>
+            <section class='modal-form__section'>
+                <label class='modal-form__label' for='FirstName'>Förnamn*</label>
+                <input class='modal-form__input modal-form__input--text' required type='text' placeholder='' id='FirstName' @bind-value=@_applicant.Certificant.FirstName />
+            </section>
+            <section class='modal-form__section'>
+                <label class='modal-form__label' for='LastName'>Efternamn*</label>
+                <input class='modal-form__input modal-form__input--text' required type='text' placeholder='' id='LastName' @bind-value=@_applicant.Certificant.LastName />
+            </section>
+            <section class='modal-form__section modal-form__section--nid'>
+                <label class='modal-form__label' for='NationalIdNumber'>Personnr, 10 siffror, alt. Nationellt ID nr*</label>
+                <input class='modal-form__input modal-form__input--text' required type='text' pattern='[0-9]*' placeholder='8001021234' id='NationalIdNumber' @bind-value=@_applicant.Certificant.NationalIdNumber />
+            </section>
+            <section class='modal-form__section'>
+                <label class='modal-form__label' for='CompanyName'>Anställd hos</label>
+                <input class='modal-form__input modal-form__input--text' type='text' placeholder='' id='CompanyName' @bind-value=@_applicant.CompanyName />
+            </section>
+            <h3>Frågor</h3>
+            @foreach (var question in _examination.ApplicantQuestions.Select((value, i) => (value, i)))
+            {
+                <section class="alternatives-row">
+                    <p>Fråga @(question.i + 1)</p>
+                    @foreach(var alternative in question.value.ApplicantAlternatives.Select((value, i) => (value, i))) {
+                        <button type="button" class="alternative-checkbox alternative-checkbox--@(alternative.value.IsChosen ? "checked" : "unchecked")" @onclick=@(() => {alternative.value.IsChosen = !alternative.value.IsChosen;} )>@(alternative.i + 1)</button>
+
+                    }
+                </section>
+            }
+            <p>Kolla en extra gång så varje svar har 1 alternativ markerat, inte mer!</p>
+            <Button type="submit" buttonContent="Lämna in examination" />
+
+        </EditForm>
+
+
+    }
+}
+
+
+@code {
+    [Parameter] public string CompanyId { get; set; }
+    [Parameter] public string Tag { get; set; }
+    [Parameter] public string ExaminationId { get; set; }
+    [SupplyParameterFromForm] private ApplicantDto _applicant { get; set; } = new();
+    private Popup popupRef;
+
+    private ExaminationDto _examination { get; set; }
+    private bool _isLoading { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Guid.TryParse(ExaminationId, out var _examinationId)) _navManager.NavigateTo($"/auth/sectors/{Tag}/companies/{CompanyId}/offline?Error=invalid-id");
+        if (!Guid.TryParse(CompanyId, out var _companyId)) _navManager.NavigateTo($"/auth/sectors/{Tag}");
+        _applicant.Certificant = new();
+        _examination = await _dataService.GetOfflineExaminationById(_examinationId);
+
+
+    }
+    private async Task SubmitExamination()
+    {
+        popupRef.Show("Denna funktionen är snart på plats, men hann tyvärr inte inför examensarbetet!", "Jag misslyckades här!!");
+        // var applicant = await _dataService.TryToCreateNewApplicant(_applicant);
+
+        // if (applicant != null)
+        // {
+
+        // }
+
+
+    }
+}

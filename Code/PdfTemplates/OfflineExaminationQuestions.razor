@@ -1,0 +1,115 @@
+﻿@using AlfaCert.Models.ExaminationModels.Applicant
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font-family: "Inter", sans-serif;
+        }
+        .main {
+            display: grid;
+        }
+
+        .question-list {
+            display: grid;
+            list-style:none;
+            gap: 5mm;
+        }
+
+        .question-list__item {
+            border: 1px dashed black;
+            padding: .5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 47.5mm;
+            min-height: 47.5mm;
+            max-height: 47.5mm;
+        }
+
+        .question-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            border-right: solid black 1px;
+        }
+
+        .question-counter {
+            font-size: .9rem;
+        }
+
+
+        .question-content {
+            font-weight:500;
+            font-size: .8rem;
+            padding-inline: .5rem;
+            padding-block:.1rem;
+        }
+
+        .question-references {
+            padding-top:5mm;
+            font-size:.7rem;
+        }
+
+        .question-references > span {
+            font-style:italic;
+            font-weight:100;
+        }
+
+        .alternative-list {
+            padding-inline: 2rem;
+            padding-block: .5rem;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-evenly;
+        }
+
+        .alternative-list__item {
+            padding-block: .25rem;
+            font-size: .8rem;
+        }
+    </style>
+</head>
+
+<main class="main">
+        <ul class="question-list">
+            @for(int i=0; i < Questions.Count; i++)
+            {
+                var questionContent = Questions[i].Question.Content.Split("\n");
+                <li class="question-list__item">
+                    <section class="question-section">
+                        <h2 class="question-counter">Fråga @(i+1)</h2>
+                        @foreach(var sentence in questionContent)
+                        {
+                        <p class="question-content">
+                            @sentence
+                        </p>
+                        }
+                    <p class="question-references">
+                            REFERENSER:<br/>
+                        <span>@Questions[i].Question.ReferenceContent</span>
+                    </p>
+                        @* <p class="question-content">
+                            Sverige har många kända städer, men en av dem är landets huvudstad och den största staden i landet.
+                            <br><br>Denna stad är också hemvist för många av Sveriges viktigaste institutioner, som riksdagen, regeringen och kungafamiljen.
+                            <br><br>Vilken stad är Sveriges huvudstad?
+                        </p> *@
+                    </section>
+                    <ol class="alternative-list">
+                        @foreach(var alternative in Questions[i].ApplicantAlternatives)
+                        {
+                            <li class="alternative-list__item">@alternative.Alternative.Content</li>
+                        }
+                    </ol>
+                </li>
+            }
+        </ul>
+    </main>
+
+@code {
+    [Parameter] public List<ApplicantQuestionModel> Questions { get; set; }
+}
